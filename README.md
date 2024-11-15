@@ -6,6 +6,12 @@
 git clone git@github.com:ervis/dotfiles.git ~/.dotfiles
 ```
 
+## Add bin to path
+
+```bash
+echo "export PATH=\"\$PATH:\$HOME/.dotfiles/bin\"" >> ~/.zshrc
+```
+
 ## Setup jenkins
 
 ```bash
