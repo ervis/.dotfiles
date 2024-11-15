@@ -1,0 +1,113 @@
+services:
+  ollama:
+    volumes:
+      - ollama:/root/.ollama
+    container_name: ollama
+    pull_policy: always
+    tty: true
+    restart: unless-stopped
+    image: ollama/ollama:${OLLAMA_DOCKER_TAG-latest}
+  ollama-web:
+    image: "ghcr.io/open-webui/open-webui:main"
+    container_name: ollama-web
+    volumes:
+      - ollama-web:/app/backend/data
+    depends_on:
+      - ollama
+    ports:
+      - 7000:8080
+    environment:
+      - 'OLLAMA_BASE_URL=http://ollama:11434'
+      - 'WEBUI_SECRET_KEY='
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: unless-stopped
+  redis:
+    image: "redis"
+    container_name: redis
+    restart: "unless-stopped"
+    networks:
+      - ez_network
+    ports:
+    - "6379:6379"
+  postgres:
+    image: 'postgres:16-alpine'
+    container_name: postgres
+    restart: 'unless-stopped'
+    networks:
+      - ez_network
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_ROOT_PASSWORD=postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+  mailhog:
+    image: "mailhog/mailhog"
+    container_name: mailhog
+    restart: "unless-stopped"
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - ez_network
+  metabase:
+    image: "metabase/metabase:latest"
+    container_name: metabase
+    ports:
+      - "3000:3000"
+    networks:
+      - ez_network
+    volumes:
+      - metabase
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: toor
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - ez_network
+  excalidraw:
+    image: excalidraw/excalidraw:latest
+    container_name: excalidraw
+    ports:
+      - "3300:80"
+    restart: unless-stopped
+    stdin_open: true
+    healthcheck:
+      disable: true
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./:/opt/node_app/app:delegated
+      - ./package.json:/opt/node_app/package.json
+      - ./yarn.lock:/opt/node_app/yarn.lock
+      - notused:/opt/node_app/app/node_modules
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins:/var/jenkins_home
+    networks:
+      - ez_network
+    restart: unless-stopped
+volumes:
+  db-data: {}
+  mariadb-data: {}
+  metabase: {}
+  ollama: {}
+  ollama-web: {}
+  notused: {}
+  jenkins: {}
+networks:
+  ez_network:
