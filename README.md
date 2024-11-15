@@ -18,6 +18,12 @@ if [ -f $HOME/.dotfiles/source.sh ]; then
 fi
 ```
 
+## setup hosts file
+
+```bash
+# add erviszyka.io to /etc/hosts
+echo "erviszyka.io 127.0.0.1" >> /etc/hosts
+
 ## Setup jenkins
 
 ```bash
